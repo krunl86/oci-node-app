@@ -1,0 +1,77 @@
+# OCI DevOps build spec (replaces AWS CodeBuild buildspec.yml)
+version: 0.1
+component: build
+timeoutInSeconds: 900
+runAs: root
+shell: bash
+
+env:
+  variables:
+    NODE_VERSION: "20"
+  # Exported variables flow to the Deliver Artifacts stage and, via the
+  # Trigger Deployment stage, into the deploy pipeline as parameters.
+  exportedVariables:
+    - BUILDRUN_HASH
+
+steps:
+  - type: Command
+    name: "Set build version"
+    timeoutInSeconds: 60
+    command: |
+      export BUILDRUN_HASH=$(echo ${OCI_BUILD_RUN_ID} | rev | cut -c 1-7)
+      echo "Build hash: ${BUILDRUN_HASH}"
+
+  - type: Command
+    name: "Set up Node.js"
+    timeoutInSeconds: 300
+    command: |
+      # Build runners ship with nvm; fall back to installing it if missing
+      export NVM_DIR="$HOME/.nvm"
+      if [ ! -s "$NVM_DIR/nvm.sh" ]; then
+        curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+      fi
+      source "$NVM_DIR/nvm.sh"
+      nvm install ${NODE_VERSION}
+      nvm use ${NODE_VERSION}
+      node -v && npm -v
+
+  - type: Command
+    name: "Install dependencies"
+    timeoutInSeconds: 300
+    command: |
+      source "$HOME/.nvm/nvm.sh"
+      nvm use ${NODE_VERSION}
+      npm ci
+
+  - type: Command
+    name: "Run tests"
+    timeoutInSeconds: 300
+    command: |
+      source "$HOME/.nvm/nvm.sh"
+      nvm use ${NODE_VERSION}
+      npm test
+
+  - type: Command
+    name: "Package application"
+    timeoutInSeconds: 300
+    onFailure:
+      - type: Command
+        command: echo "Packaging failed"
+        timeoutInSeconds: 60
+    command: |
+      source "$HOME/.nvm/nvm.sh"
+      nvm use ${NODE_VERSION}
+      npm prune --omit=dev
+      echo "${BUILDRUN_HASH}" > VERSION
+      zip -qr app.zip src package.json package-lock.json node_modules VERSION
+      ls -lh app.zip
+
+outputArtifacts:
+  # Delivered to Artifact Registry as generic artifacts, version ${BUILDRUN_HASH}
+  - name: app_zip
+    type: BINARY
+    location: ${OCI_PRIMARY_SOURCE_DIR}/app.zip
+
+  - name: deploy_spec
+    type: BINARY
+    location: ${OCI_PRIMARY_SOURCE_DIR}/deployment/deploy_spec.yaml

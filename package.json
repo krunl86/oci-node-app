@@ -1,0 +1,24 @@
+{
+  "name": "oci-node-app",
+  "version": "1.0.0",
+  "description": "Simple Node.js API with a build pipeline for OCI DevOps",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "helmet": "^7.1.0",
+    "morgan": "^1.10.0",
+    "oci-common": "^2.142.2",
+    "oci-secrets": "^2.142.2"
+  }
+}

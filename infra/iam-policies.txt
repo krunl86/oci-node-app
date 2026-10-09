@@ -1,0 +1,33 @@
+# Replace <compartment-ocid> / <compartment-name> before use.
+# Identity > Domains > Default > Dynamic groups
+
+## Dynamic group: devops-dg  (DevOps service resources — replaces CodeStar/CodePipeline service roles)
+ANY {resource.type = 'devopsbuildpipeline', resource.compartment.id = '<compartment-ocid>'}
+ANY {resource.type = 'devopsdeploypipeline', resource.compartment.id = '<compartment-ocid>'}
+ANY {resource.type = 'devopsrepository', resource.compartment.id = '<compartment-ocid>'}
+ANY {resource.type = 'devopsconnection', resource.compartment.id = '<compartment-ocid>'}
+ANY {resource.type = 'devopstrigger', resource.compartment.id = '<compartment-ocid>'}
+
+## Dynamic group: app-instances-dg  (Compute instances — replaces the EC2 instance profile/role)
+ALL {instance.compartment.id = '<compartment-ocid>'}
+
+
+# Identity > Policies  (create in the same compartment)
+
+## devops-policy
+Allow dynamic-group devops-dg to manage devops-family in compartment <compartment-name>
+Allow dynamic-group devops-dg to manage generic-artifacts in compartment <compartment-name>
+Allow dynamic-group devops-dg to read all-artifacts in compartment <compartment-name>
+Allow dynamic-group devops-dg to manage repos in compartment <compartment-name>
+Allow dynamic-group devops-dg to use ons-topics in compartment <compartment-name>
+Allow dynamic-group devops-dg to read secret-family in compartment <compartment-name>
+Allow dynamic-group devops-dg to read instance-family in compartment <compartment-name>
+Allow dynamic-group devops-dg to use instance-agent-command-execution-family in compartment <compartment-name>
+Allow dynamic-group devops-dg to use load-balancers in compartment <compartment-name>
+Allow dynamic-group devops-dg to use virtual-network-family in compartment <compartment-name>
+
+## app-instances-policy
+Allow dynamic-group app-instances-dg to use instance-agent-command-execution-family in compartment <compartment-name> where request.instance.id = target.instance.id
+Allow dynamic-group app-instances-dg to read generic-artifacts in compartment <compartment-name>
+Allow dynamic-group app-instances-dg to read all-artifacts in compartment <compartment-name>
+Allow dynamic-group app-instances-dg to read secret-bundles in compartment <compartment-name> where target.secret.name = 'oci-node-app-secrets'
