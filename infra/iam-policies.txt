@@ -2,11 +2,8 @@
 # Identity > Domains > Default > Dynamic groups
 
 ## Dynamic group: devops-dg  (DevOps service resources — replaces CodeStar/CodePipeline service roles)
-ANY {resource.type = 'devopsbuildpipeline', resource.compartment.id = '<compartment-ocid>'}
-ANY {resource.type = 'devopsdeploypipeline', resource.compartment.id = '<compartment-ocid>'}
-ANY {resource.type = 'devopsrepository', resource.compartment.id = '<compartment-ocid>'}
-ANY {resource.type = 'devopsconnection', resource.compartment.id = '<compartment-ocid>'}
-ANY {resource.type = 'devopstrigger', resource.compartment.id = '<compartment-ocid>'}
+# Single rule (paste into one rule box):
+ALL {resource.compartment.id = '<compartment-ocid>', ANY {resource.type = 'devopsbuildpipeline', resource.type = 'devopsdeploypipeline', resource.type = 'devopsrepository', resource.type = 'devopsconnection', resource.type = 'devopstrigger'}}
 
 ## Dynamic group: app-instances-dg  (Compute instances — replaces the EC2 instance profile/role)
 ALL {instance.compartment.id = '<compartment-ocid>'}
