@@ -7,6 +7,15 @@ set -euxo pipefail
 APP_NAME=oci-node-app
 APP_ROOT=/opt/${APP_NAME}
 
+# Small shapes (e.g. VM.Standard.E2.1.Micro, 1 GB) need swap for dnf to finish
+if [ "$(awk '/MemTotal/ {print $2}' /proc/meminfo)" -lt 2000000 ] && [ ! -f /swapfile ]; then
+  fallocate -l 2G /swapfile
+  chmod 600 /swapfile
+  mkswap /swapfile
+  swapon /swapfile
+  echo '/swapfile none swap sw 0 0' >> /etc/fstab
+fi
+
 # Node.js 20 runtime + tools used by the deployment spec
 dnf module reset -y nodejs
 dnf module enable -y nodejs:20
