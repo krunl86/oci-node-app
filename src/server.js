@@ -31,6 +31,7 @@ const books = [
 app.get('/health', (req, res) => {
   res.json({
     status: 'ok',
+    cloud: 'oci',
     version: APP_VERSION,
     secretsSource,
     uptimeSeconds: Math.round(process.uptime()),

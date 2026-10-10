@@ -23,6 +23,7 @@ test('API endpoints', async (t) => {
   const health = await get(server, '/health');
   assert.strictEqual(health.status, 200);
   assert.strictEqual(health.body.status, 'ok');
+  assert.strictEqual(health.body.cloud, 'oci');
 
   const list = await get(server, '/api/books');
   assert.strictEqual(list.status, 200);
