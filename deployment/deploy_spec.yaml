@@ -4,6 +4,8 @@
 # Run Command" plugin. ${...} values are deploy pipeline parameters, so the
 # DevOps artifact holding this file must have "Allow parameterization" = Yes.
 # Parameter names may not start with "OCI" (reserved), hence VAULT_ID / SECRET_NAME.
+# DevOps treats every ${...} as a pipeline parameter, so step commands use
+# plain $VAR for the env variables below to avoid "Value is missing" warnings.
 version: 1.0
 component: deployment
 runAs: root
@@ -28,7 +30,7 @@ steps:
       set -euo pipefail
       ZIP=$(find /tmp/oci-node-app-incoming -name '*.zip' | head -1)
       [ -n "$ZIP" ] || { echo "No zip artifact found"; exit 1; }
-      DEST="${APP_ROOT}/releases/${RELEASE}"
+      DEST="$APP_ROOT/releases/$RELEASE"
       rm -rf "$DEST" && mkdir -p "$DEST"
       unzip -q "$ZIP" -d "$DEST"
       chown -R nodeapp:nodeapp "$DEST"
@@ -40,48 +42,49 @@ steps:
     command: |
       set -euo pipefail
       # Only non-secret config goes on disk; secrets are read from Vault at startup
-      mkdir -p /etc/${APP_NAME}
-      cat > /etc/${APP_NAME}/app.env <<EOF
+      mkdir -p /etc/$APP_NAME
+      cat > /etc/$APP_NAME/app.env <<EOF
       NODE_ENV=production
       PORT=3000
       SECRETS_PROVIDER=oci-vault
-      OCI_VAULT_ID=${VAULT_ID}
-      OCI_SECRET_NAME=${SECRET_NAME}
+      OCI_VAULT_ID=$VAULT_ID
+      OCI_SECRET_NAME=$SECRET_NAME
       EOF
-      chmod 640 /etc/${APP_NAME}/app.env
-      chown root:nodeapp /etc/${APP_NAME}/app.env
+      chmod 640 /etc/$APP_NAME/app.env
+      chown root:nodeapp /etc/$APP_NAME/app.env
 
   - stepType: Command
     name: "Switch release and restart"
     timeoutInSeconds: 120
     command: |
       set -euo pipefail
-      cd "${APP_ROOT}"
+      cd "$APP_ROOT"
       # Remember the previous release so the health check can roll back
       if [ -L current ]; then readlink current > previous_release; fi
-      ln -sfn "releases/${RELEASE}" current
-      systemctl restart ${APP_NAME}
+      ln -sfn "releases/$RELEASE" current
+      systemctl restart $APP_NAME
 
   - stepType: Command
     name: "Health check (roll back on failure)"
-    timeoutInSeconds: 180
+    timeoutInSeconds: 240
     command: |
       set -uo pipefail
-      cd "${APP_ROOT}"
-      for i in $(seq 1 20); do
-        if curl -fsS http://127.0.0.1:3000/health | grep -q "\"version\":\"${RELEASE}\""; then
-          echo "Release ${RELEASE} is healthy"
+      cd "$APP_ROOT"
+      # Up to ~150s: startup plus the Vault call is slow on 1/8-OCPU micro shapes
+      for i in $(seq 1 50); do
+        if curl -fsS http://127.0.0.1:3000/health | grep -q "\"version\":\"$RELEASE\""; then
+          echo "Release $RELEASE is healthy"
           # Keep the 5 most recent releases
           ls -1dt releases/* | tail -n +6 | xargs -r rm -rf
           exit 0
         fi
         sleep 3
       done
-      echo "Health check failed for ${RELEASE}"
-      journalctl -u ${APP_NAME} -n 50 --no-pager || true
+      echo "Health check failed for $RELEASE"
+      journalctl -u $APP_NAME -n 50 --no-pager || true
       if [ -s previous_release ]; then
         echo "Rolling back to $(cat previous_release)"
         ln -sfn "$(cat previous_release)" current
-        systemctl restart ${APP_NAME}
+        systemctl restart $APP_NAME
       fi
       exit 1
