@@ -7,19 +7,21 @@ set -euxo pipefail
 APP_NAME=oci-node-app
 APP_ROOT=/opt/${APP_NAME}
 
-# Small shapes (e.g. VM.Standard.E2.1.Micro, 1 GB) need swap for dnf to finish
-if [ "$(awk '/MemTotal/ {print $2}' /proc/meminfo)" -lt 2000000 ] && [ ! -f /swapfile ]; then
-  fallocate -l 2G /swapfile
-  chmod 600 /swapfile
-  mkswap /swapfile
-  swapon /swapfile
-  echo '/swapfile none swap sw 0 0' >> /etc/fstab
+# Node.js 20 from the official tarball. dnf gets OOM-killed on 1 GB shapes
+# (VM.Standard.E2.1.Micro); unzip/curl/xz already ship with the OL8 image.
+NODE_DIST=https://nodejs.org/dist/latest-v20.x
+NODE_ARCH=$(uname -m | sed 's/x86_64/x64/;s/aarch64/arm64/')
+if ! command -v node >/dev/null; then
+  cd /tmp
+  curl -fsSLO ${NODE_DIST}/SHASUMS256.txt
+  NODE_TARBALL=$(awk "/linux-${NODE_ARCH}.tar.xz\$/ {print \$2}" SHASUMS256.txt)
+  curl -fsSLO ${NODE_DIST}/${NODE_TARBALL}
+  grep " ${NODE_TARBALL}\$" SHASUMS256.txt | sha256sum -c -
+  tar -xJf ${NODE_TARBALL} -C /usr/local --strip-components=1 --no-same-owner
+  ln -sf /usr/local/bin/node /usr/bin/node
+  rm -f ${NODE_TARBALL} SHASUMS256.txt
 fi
-
-# Node.js 20 runtime + tools used by the deployment spec
-dnf module reset -y nodejs
-dnf module enable -y nodejs:20
-dnf install -y nodejs unzip curl
+node -v
 
 # Unprivileged service user
 id nodeapp &>/dev/null || useradd --system --home-dir ${APP_ROOT} --shell /sbin/nologin nodeapp
