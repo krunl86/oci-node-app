@@ -23,6 +23,10 @@ if ! command -v node >/dev/null; then
 fi
 node -v
 
+# The hourly dnf metadata refresh swaps a 1 GB shape to a standstill (and gets
+# OOM-killed); patch via OS Management or a manual `dnf update` instead.
+systemctl disable --now dnf-makecache.timer
+
 # Unprivileged service user
 id nodeapp &>/dev/null || useradd --system --home-dir ${APP_ROOT} --shell /sbin/nologin nodeapp
 mkdir -p ${APP_ROOT}/releases /etc/${APP_NAME}
