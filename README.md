@@ -96,8 +96,8 @@ Use one compartment for everything, e.g. `oci-node-app-demo`.
 9. **Environment** (*Project > Environments*): type **Instance group**, select
    the instance(s) from step 3.
 10. **Deploy pipeline**:
-    - Parameters: `BUILDRUN_HASH` (default `latest`), `OCI_VAULT_ID` (= vault OCID),
-      `OCI_SECRET_NAME` (= `oci-node-app-secrets`).
+    - Parameters: `BUILDRUN_HASH` (default `latest`), `VAULT_ID` (= vault OCID),
+      `SECRET_NAME` (= `oci-node-app-secrets`).
     - Stage: **Deploy incrementally through Compute instance group** → environment
       from step 9, deployment configuration `deploy-spec`, artifact `app-zip`,
       rollout by count = 1.

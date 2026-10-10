@@ -3,6 +3,7 @@
 # Runs on each Compute instance via the Oracle Cloud Agent "Compute Instance
 # Run Command" plugin. ${...} values are deploy pipeline parameters, so the
 # DevOps artifact holding this file must have "Allow parameterization" = Yes.
+# Parameter names may not start with "OCI" (reserved), hence VAULT_ID / SECRET_NAME.
 version: 1.0
 component: deployment
 runAs: root
@@ -11,8 +12,8 @@ env:
     APP_NAME: "oci-node-app"
     APP_ROOT: "/opt/oci-node-app"
     RELEASE: "${BUILDRUN_HASH}"
-    OCI_VAULT_ID: "${OCI_VAULT_ID}"
-    OCI_SECRET_NAME: "${OCI_SECRET_NAME}"
+    VAULT_ID: "${VAULT_ID}"
+    SECRET_NAME: "${SECRET_NAME}"
 
 files:
   # All artifacts selected in the deploy stage are copied here (app.zip)
@@ -44,8 +45,8 @@ steps:
       NODE_ENV=production
       PORT=3000
       SECRETS_PROVIDER=oci-vault
-      OCI_VAULT_ID=${OCI_VAULT_ID}
-      OCI_SECRET_NAME=${OCI_SECRET_NAME}
+      OCI_VAULT_ID=${VAULT_ID}
+      OCI_SECRET_NAME=${SECRET_NAME}
       EOF
       chmod 640 /etc/${APP_NAME}/app.env
       chown root:nodeapp /etc/${APP_NAME}/app.env
