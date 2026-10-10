@@ -6,6 +6,10 @@
 # Parameter names may not start with "OCI" (reserved), hence VAULT_ID / SECRET_NAME.
 # DevOps treats every ${...} as a pipeline parameter, so step commands use
 # plain $VAR for the env variables below to avoid "Value is missing" warnings.
+#
+# With runAs: root the agent wraps only the FIRST line of a command in
+# `sudo -E`; later lines run as the unprivileged ocarun user. Each step
+# therefore starts a root bash on line 1 and feeds the script via a heredoc.
 version: 1.0
 component: deployment
 runAs: root
@@ -27,20 +31,22 @@ steps:
     name: "Unpack release"
     timeoutInSeconds: 120
     command: |
-      set -euo pipefail
-      ZIP=$(find /tmp/oci-node-app-incoming -name '*.zip' | head -1)
-      [ -n "$ZIP" ] || { echo "No zip artifact found"; exit 1; }
+      bash -euo pipefail <<'SCRIPT'
+      ZIP=/tmp/oci-node-app-incoming/app.zip
+      [ -f "$ZIP" ] || { echo "No app.zip in /tmp/oci-node-app-incoming"; ls -la /tmp/oci-node-app-incoming; exit 1; }
       DEST="$APP_ROOT/releases/$RELEASE"
       rm -rf "$DEST" && mkdir -p "$DEST"
       unzip -q "$ZIP" -d "$DEST"
       chown -R nodeapp:nodeapp "$DEST"
       rm -rf /tmp/oci-node-app-incoming
+      echo "Unpacked $RELEASE to $DEST"
+      SCRIPT
 
   - stepType: Command
     name: "Write runtime config"
     timeoutInSeconds: 60
     command: |
-      set -euo pipefail
+      bash -euo pipefail <<'SCRIPT'
       # Only non-secret config goes on disk; secrets are read from Vault at startup
       mkdir -p /etc/$APP_NAME
       cat > /etc/$APP_NAME/app.env <<EOF
@@ -52,23 +58,27 @@ steps:
       EOF
       chmod 640 /etc/$APP_NAME/app.env
       chown root:nodeapp /etc/$APP_NAME/app.env
+      echo "Wrote /etc/$APP_NAME/app.env"
+      SCRIPT
 
   - stepType: Command
     name: "Switch release and restart"
     timeoutInSeconds: 120
     command: |
-      set -euo pipefail
+      bash -euo pipefail <<'SCRIPT'
       cd "$APP_ROOT"
       # Remember the previous release so the health check can roll back
       if [ -L current ]; then readlink current > previous_release; fi
       ln -sfn "releases/$RELEASE" current
       systemctl restart $APP_NAME
+      echo "current -> releases/$RELEASE, service restarted"
+      SCRIPT
 
   - stepType: Command
     name: "Health check (roll back on failure)"
     timeoutInSeconds: 240
     command: |
-      set -uo pipefail
+      bash -uo pipefail <<'SCRIPT'
       cd "$APP_ROOT"
       # Up to ~150s: startup plus the Vault call is slow on 1/8-OCPU micro shapes
       for i in $(seq 1 50); do
@@ -88,3 +98,4 @@ steps:
         systemctl restart $APP_NAME
       fi
       exit 1
+      SCRIPT
