@@ -21,18 +21,18 @@
 - [2. AWS → OCI service mapping](#2-aws--oci-service-mapping)
 - [3. Resource inventory (as built)](#3-resource-inventory-as-built)
 - [4. Repository layout](#4-repository-layout)
-- [Step 0: Code review, application changes, local setup](#step-0--code-review-application-changes-local-setup)
-- [Phase 1: Foundation (Steps 1–7)](#phase-1--foundation-steps-17)
-- [Phase 2: CI: build pipeline (Steps 8–20)](#phase-2--ci-build-pipeline-steps-820)
-- [Phase 3: Deploy target: network and Compute (Steps 21–24)](#phase-3--deploy-target-network-and-compute-steps-2124)
-- [Phase 4: CD: deploy pipeline and automation (Steps 25–34)](#phase-4--cd-deploy-pipeline-and-automation-steps-2534)
-- [Appendix A: Final source files (complete)](#appendix-a--final-source-files-complete)
-- [Appendix B: Git commit history](#appendix-b--git-commit-history)
-- [Appendix C: Issues encountered and fixes](#appendix-c--issues-encountered-and-fixes)
-- [Appendix D: Operations cheat sheet](#appendix-d--operations-cheat-sheet)
-- [Appendix E: Production hardening checklist](#appendix-e--production-hardening-checklist)
-- [Appendix F: Cost notes](#appendix-f--cost-notes)
-- [Appendix G: Teardown](#appendix-g--teardown)
+- [Step 0: Code review, application changes, local setup](#step-0-code-review-application-changes-local-setup)
+- [Phase 1: Foundation (Steps 1–7)](#phase-1-foundation-steps-17)
+- [Phase 2: CI: build pipeline (Steps 8–20)](#phase-2-ci-build-pipeline-steps-820)
+- [Phase 3: Deploy target: network and Compute (Steps 21–24)](#phase-3-deploy-target-network-and-compute-steps-2124)
+- [Phase 4: CD: deploy pipeline and automation (Steps 25–34)](#phase-4-cd-deploy-pipeline-and-automation-steps-2534)
+- [Appendix A: Final source files (complete)](#appendix-a-final-source-files-complete)
+- [Appendix B: Git commit history](#appendix-b-git-commit-history)
+- [Appendix C: Issues encountered and fixes](#appendix-c-issues-encountered-and-fixes)
+- [Appendix D: Operations cheat sheet](#appendix-d-operations-cheat-sheet)
+- [Appendix E: Production hardening checklist](#appendix-e-production-hardening-checklist)
+- [Appendix F: Cost notes](#appendix-f-cost-notes)
+- [Appendix G: Teardown](#appendix-g-teardown)
 
 ---
 
@@ -2062,6 +2062,7 @@ Directory layout:
 | `cc69957` | 2026-10-10 10:06 | cloud-init: disable dnf-makecache timer (OOM-thrashes 1 GB shapes) | 29a |
 | `0aed49b` | 2026-10-10 12:02 | deploy_spec: run each step as root via bash heredoc | 31 |
 | `1e6a23e` | 2026-10-10 12:16 | health: report cloud=oci (end-to-end trigger test) | 34 |
+| `fc88d10` | 2026-10-10 12:35 | docs: add full AWS to OCI CI/CD migration runbook (steps 0-34) | Docs |
 
 All commits authored as `Krunal Prajapati <krunalgadgetguru@gmail.com>` with trailer `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
 
