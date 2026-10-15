@@ -25,6 +25,7 @@ const books = [
   { id: 1, title: 'Ramayana', author: 'Valmiki', year: -500 },
   { id: 2, title: 'Mahabharata', author: 'Vyasa', year: -400 },
   { id: 3, title: 'Bhagavad Gita', author: 'Vyasa', year: -200 },
+  { id: 4, title: 'garud puran', author: 'Vyasa', year: -200 },
 ];
 
 // 1. Health check (also useful for OCI load balancer / container probes)
