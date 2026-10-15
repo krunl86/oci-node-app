@@ -27,7 +27,7 @@ test('API endpoints', async (t) => {
 
   const list = await get(server, '/api/books');
   assert.strictEqual(list.status, 200);
-  assert.strictEqual(list.body.count, 3);
+  assert.strictEqual( list.body.count, 4 );
 
   const one = await get(server, '/api/books/1');
   assert.strictEqual(one.body.title, 'Ramayana');
